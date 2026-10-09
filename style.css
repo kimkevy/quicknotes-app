@@ -92,6 +92,29 @@ body {
   gap: 0.5rem;
 }
 
+.error-message {
+  color: #ef4444;
+  font-size: 0.85rem;
+  font-weight: 500;
+  min-height: 1.25rem;
+  display: none;
+  animation: fadeIn 0.2s ease;
+}
+
+.error-message.visible {
+  display: block;
+}
+
+#note-text.input-error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .note-label {
   font-size: 1rem;
   font-weight: 600;
@@ -193,6 +216,19 @@ body {
 /* Notes List & Cards */
 .notes-section {
   width: 100%;
+}
+
+.notes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0.25rem 0.75rem 0.25rem;
+}
+
+.note-count {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 #notes-list {

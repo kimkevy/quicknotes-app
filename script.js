@@ -4,6 +4,8 @@ const noteText = document.getElementById('note-text');
 const noteCategory = document.getElementById('note-category');
 const addNoteBtn = document.getElementById('add-note');
 const notesList = document.getElementById('notes-list');
+const errorMessage = document.getElementById('error-message');
+const noteCount = document.getElementById('note-count');
 
 // Search DOM elements
 const searchToggleBtn = document.getElementById('search-toggle-btn');
@@ -46,10 +48,46 @@ function formatReadableDate(date = new Date()) {
   });
 }
 
+// Function to update the note count display
+function updateNoteCount() {
+  if (!noteCount) return;
+  const count = notes.length;
+  if (count === 0) {
+    noteCount.textContent = 'You have no notes yet.';
+  } else if (count === 1) {
+    noteCount.textContent = 'You have 1 note.';
+  } else {
+    noteCount.textContent = `You have ${count} notes.`;
+  }
+}
+
+// Function to show error message
+function showError(msg) {
+  if (errorMessage) {
+    errorMessage.textContent = msg;
+    errorMessage.classList.add('visible');
+  }
+  if (noteText) {
+    noteText.classList.add('input-error');
+  }
+}
+
+// Function to clear error message
+function clearError() {
+  if (errorMessage) {
+    errorMessage.textContent = '';
+    errorMessage.classList.remove('visible');
+  }
+  if (noteText) {
+    noteText.classList.remove('input-error');
+  }
+}
+
 // Function to delete an individual note by id
 function deleteNoteById(id) {
   notes = notes.filter(note => note.id !== id);
   localStorage.setItem('notes', JSON.stringify(notes));
+  updateNoteCount();
   renderNotes();
 }
 
@@ -106,6 +144,7 @@ function renderNotes() {
     const itemDeleteBtn = document.createElement('button');
     itemDeleteBtn.type = 'button';
     itemDeleteBtn.className = 'delete-note-btn';
+    itemDeleteBtn.setAttribute('aria-label', `Delete note: ${note.text.slice(0, 20)}`);
     itemDeleteBtn.innerHTML = `
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="3 6 5 6 21 6"></polyline>
@@ -143,22 +182,45 @@ if (noteText) {
   noteText.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
       clearInputs();
+      clearError();
     }
   });
 
-  // Save draft on input
+  // Save draft and clear errors on typing if valid
   noteText.addEventListener('input', () => {
     localStorage.setItem('note-draft', noteText.value);
+    if (errorMessage && errorMessage.classList.contains('visible')) {
+      const trimmed = noteText.value.trim();
+      if (trimmed !== '' && noteText.value.length <= 200) {
+        clearError();
+      }
+    }
   });
 }
 
-// Handle form submission to create note object
+// Handle form submission to validate and create note object
 function handleAddNote(e) {
   if (e) e.preventDefault();
   if (!noteText) return;
 
-  const text = noteText.value.trim();
-  if (!text) return;
+  const rawValue = noteText.value;
+  const text = rawValue.trim();
+
+  // Validation rules
+  if (text === '') {
+    showError('Please type a note first.');
+    noteText.focus();
+    return;
+  }
+
+  if (rawValue.length > 200) {
+    showError('Notes must be 200 characters or fewer.');
+    noteText.focus();
+    return;
+  }
+
+  // Clear any existing error when valid note is added
+  clearError();
 
   const category = noteCategory ? noteCategory.value : 'General';
   const newNote = {
@@ -170,6 +232,7 @@ function handleAddNote(e) {
 
   notes.unshift(newNote);
   localStorage.setItem('notes', JSON.stringify(notes));
+  updateNoteCount();
   renderNotes();
   clearInputs();
   noteText.focus();
@@ -230,6 +293,9 @@ function init() {
   if (savedDraft !== null && noteText) {
     noteText.value = savedDraft;
   }
+
+  // Update note count
+  updateNoteCount();
 
   // Ensure notes list is rendered
   renderNotes();
