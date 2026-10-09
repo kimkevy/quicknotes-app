@@ -6,6 +6,7 @@ const addNoteBtn = document.getElementById('add-note');
 const notesList = document.getElementById('notes-list');
 const errorMessage = document.getElementById('error-message');
 const noteCount = document.getElementById('note-count');
+const clearAllBtn = document.getElementById('clear-all-btn');
 
 // Search DOM elements
 const searchToggleBtn = document.getElementById('search-toggle-btn');
@@ -50,14 +51,19 @@ function formatReadableDate(date = new Date()) {
 
 // Function to update the note count display
 function updateNoteCount() {
-  if (!noteCount) return;
-  const count = notes.length;
-  if (count === 0) {
-    noteCount.textContent = 'You have no notes yet.';
-  } else if (count === 1) {
-    noteCount.textContent = 'You have 1 note.';
-  } else {
-    noteCount.textContent = `You have ${count} notes.`;
+  if (noteCount) {
+    const count = notes.length;
+    if (count === 0) {
+      noteCount.textContent = 'You have no notes yet.';
+    } else if (count === 1) {
+      noteCount.textContent = 'You have 1 note.';
+    } else {
+      noteCount.textContent = `You have ${count} notes.`;
+    }
+  }
+
+  if (clearAllBtn) {
+    clearAllBtn.disabled = notes.length === 0;
   }
 }
 
@@ -242,6 +248,22 @@ if (noteForm) {
   noteForm.addEventListener('submit', handleAddNote);
 } else if (addNoteBtn) {
   addNoteBtn.addEventListener('click', handleAddNote);
+}
+
+// Function to clear all notes with confirmation
+function clearAllNotes() {
+  if (notes.length === 0) return;
+  const confirmed = confirm('Delete all notes?');
+  if (confirmed) {
+    notes = [];
+    localStorage.setItem('notes', JSON.stringify(notes));
+    updateNoteCount();
+    renderNotes();
+  }
+}
+
+if (clearAllBtn) {
+  clearAllBtn.addEventListener('click', clearAllNotes);
 }
 
 // Search functionality
